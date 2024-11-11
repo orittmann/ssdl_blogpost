@@ -1,0 +1,113 @@
+---
+# Title
+title: "Title"
+
+# Add additional authors in a hyphenated list
+author:
+- Author
+
+# Date of publication (to be adjusted by editorial team)
+date: 2020-01-30T01:00:00+01:00
+
+# Categories (to be adjusted by editorial team)
+categories: 
+  - tutorials
+  
+# Tags (to be adjusted by editorial team)
+tags: 
+  - R
+
+# bib-file (optional)
+# bibliography: 
+---
+
+<!-- 
+Please specify all required packages in the pkgs vector
+Note: Please assign a name (such as "packages") to each code chunk 
+-->
+```{r packages, echo=FALSE, results='hide', message=FALSE, include=FALSE, eval=TRUE}
+## Save package names as a vector of strings
+pkgs <- c()
+
+## Install uninstalled packages
+lapply(pkgs[!(pkgs %in% installed.packages())], install.packages)
+
+## Load all packages to library and adjust options
+lapply(pkgs, library, character.only = TRUE)
+```
+
+<!-- 
+One introductory paragraph for the blog post: 
+Topic, presenter, workshop, relevance 
+-->
+The topic ABC has become really important. In this [Methods Bites Tutorial](https://www.mzes.uni-mannheim.de/socialsciencedatalab/categories/tutorials/), [AUTHOR](https://twitter-or-web-site) (AUTHOR'S INSTITUTION) offers a hands-on recap of their workshop "WORKSHOP TITLE" in the [MZES Social Science Data Lab](https://www.mzes.uni-mannheim.de/socialsciencedatalab/page/events/) in SEMESTER YEAR.
+
+<!-- Optional: One paragraph on learning objectives -->
+After reading this blog post and engaging with the applied exercises, readers should:
+
+ - be able to ...
+ 
+<!-- If applicable: Note with references on related materials -->
+*Note:* This blog post provides a summary of AUTHOR's workshop in the [MZES Social Science Data Lab](https://www.mzes.uni-mannheim.de/socialsciencedatalab/page/events/). The original workshop materials, including slides and scripts, are available from our [GitHub](https://github.com/SocialScienceDataLab/...).
+A live recording of the workshop is available on our [YouTube Channel](https://www.youtube.com/channel/UCnM2zpHYdOH521e1uwajKrw).
+
+<!-- 
+Generate an overview of the article 
+Note: Section anchors are generated automatically from section headings as 
+      hyphenated lower-case labels without special characters; e.g. a section
+      title "Why R?" will result in the anchor "#why-r".
+-->
+### Overview
+1. [**First section**](#first-section)
+1. [**Second section**](#second-section)
+    1. [First subsection](#first-subsection)
+    1. [Second subsection](#second-subsection)
+        1. [First subsubsection](#fist-subsubsection)
+1. [**Further reading**](#further-reading)
+
+
+### First section
+<!-- Add some text here  -->
+
+```{r chunk-name, echo=FALSE, results='hide', message=FALSE, include=FALSE}
+```
+
+### First section
+<!-- Add some text here  -->
+
+### Second section
+<!-- Add some text here  -->
+
+<details> 
+<summary>Code for XX</summary> 
+```{R code1, eval=FALSE}
+```
+</details>
+
+##### First subsection
+<!-- Add some text here  -->
+
+##### Second subsection
+<!-- Add some text here  -->
+
+###### First subsubsection
+<!-- Add some text here  -->
+
+
+<details> 
+<summary>Code for XX</summary> 
+```{R code 2, eval=FALSE}
+```
+</details>
+
+<!-- Add a list of further readings -->
+### Further readings <a name="furtherreadings"></a>
+
+* [Reference](http://)
+
+<!-- Add something about the instructor -->
+### About the presenter 
+
+<!-- Optional: Add references (if bib-file is specified) -->
+### References
+
