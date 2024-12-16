@@ -55,8 +55,7 @@ After reading this blog post and engaging with the applied exercises, readers sh
  - load the pose estimation output into R
  - organize the pose estimation data in a time-series data set
  - visualize the pose estimation data
- - calculate a measure of gesticulation
- - calculate a measure of posture
+ - calculate a measure of gesticulation and posture
  
 <!-- If applicable: Note with references on related materials -->
 *Note:* This blog post provides a summary of Oliver Rittmann's workshop in the [MZES Social Science Data Lab](https://www.mzes.uni-mannheim.de/socialsciencedatalab/page/events/). The original workshop materials, including slides and scripts, are available on [GitHub](https://github.com/orittmann/ssdl_body_language).
@@ -71,39 +70,50 @@ Note: Section anchors are generated automatically from section headings as
 ### Overview
 1. [**What Are Pose Estimation Models and Why Are They Helpful For Analyzing Body Language?**](#fist-section)
 1. [**Impelementing Pose Estimation**](#second-section)
-1. [**Loading Pose Estimation Outpur into R**](#third-sectionn)
-1. [**Organizing Pose Estimation Output in a Time-Series Data Set**](#fourth-sectionn)
-1. [**Visualizing Pose Estimation Data**](#fifth-sectionn)
-1. [**Calculating Measure of Gesticulation**](#sixth-sectionn)
-1. [**Calculating Measure of Posture**](#seventh-sectionn)
-1. [**Wrapping Up**](#eighth-sectionn)
+1. [**Loading Pose Estimation Output into R**](#third-section)
+1. [**Organizing Pose Estimation Output in a Time-Series Data Set**](#fourth-section)
+1. [**Visualizing Pose Estimation Data**](#fifth-section)
+1. [**Calculating Measure of Gesticulation**](#sixth-section)
+1. [**Calculating Measure of Posture**](#seventh-section)
+1. [**Wrapping Up**](#eighth-section)
 
 
 
 ### What Are Pose Estimation Models and Why Are They Helpful For Analyzing Body Language?
 
-Politicians' body language during political speeches is encoded in video recordings. This poses a porblem if we want to analyse body language on a large scale: As political scientists, we are not used to working with videos as a data source. If we think about videos as data, we are confronted with large amounts of highly unstructured data. Videos are series of image frames, which itself consist of pixels. Individual pixels have no informational value and we cannot use the data analysis tools we are familiar with to analyse them. If we want to computationally analyze video recordings, our challenge is to extract the information that we are interested in from the videos and organize it in a data format that we can actually work with.
+How voters perceive a political speech does not only depend on the textual content of a  speech, but also on the speakers' nonverbal behavior. Two speeches with identical text can produce dramatically different effects on listeners based solely on their nonverbal delivery. Thus, to gain a comprehensive picture of political speeches, we should take its nonverbal elements into account. This blog post focuses on one aspect of nonverbal communication: body language.
+
+Politicians' body language during political speeches is encoded in video recordings. This poses a problem if we want to analyse body language on a large scale: As political scientists, we are not used to working with videos as a data source. If we think about videos as data, we are confronted with large amounts of highly unstructured data. Videos are series of image frames, which itself consist of pixels. Individual pixels have no informational value and we cannot use the data analysis tools we are familiar with to analyse them. If we want to computationally analyze video recordings, our challenge is to extract the information that we are interested in from the videos and organize it in a data format that we can actually work with.
 
 Pose estimation models, a class of computer vision models that locate and trace key points of the human body throughout videos, offer a helpful way to analyze politicians' body language during speeches. The following figure illustrates this based on four frames of a speech in the German Bundestag.
 
-![Illustration of pose estimation](figures/movenet_demo_Brehm.png)
+![Upper panel shows four single video frames, while the lower panel depicts the corresponding body keypoints.](figures/movenet_demo_Brehm.png)
 
-As you can see, pose estimation essentially extracts the information that we are interested in---information on the speaker's body language---from the frames while discarding all other information that is less interesting. 
+As you can see, pose estimation essentially extracts the information that we are interested in---information on the speaker's body language---from the frames while discarding all other information that is less interesting for this task. 
 
-When we apply pose estimation to an entire video, we'll get time series of all detected keypoints. These time series contain information about the movement of those key points, for example the movement of the speaker's hands. The key idea is that we can use this data to quantify such movement.Such qunatifications can provide us with measures of particular aspects of body language. In this tutorial, we'll use pose estimation to construct measures of gesticulation and posture. Gesticulation, which I define as dynamic use of gestures, specifically through hand movement, will be operationalized as the average between-frame movement of the speaker's wrists. This works because higher distances of the wrist location between frames tell us that the speaker moves their hand. Posture, which I define as the adoption of body size increasing postures, will be operationalized as the average height of the speaker's (higher) wrist, relative to their shoulder. The following figure illustrates both measures:
+When we apply pose estimation to an entire video, we'll get time series of all detected keypoints. These time series contain information about the movement of those key points, for example the movement of the speaker's hands. The key idea is that we can use this data to quantify such movement. Such quantifications can provide us with measures of particular aspects of body language. In this tutorial, we'll use pose estimation to construct measures of gesticulation and posture. Gesticulation, which I define as dynamic use of gestures, specifically through hand movement, will be operationalized as the average between-frame movement of the speaker's wrists. This works because higher distances of the wrist location between frames tell us that the speaker moves their hand. Posture, which I define as the adoption of body size increasing postures, will be operationalized as the average height of the speaker's (higher) wrist, relative to their shoulder. The following figure illustrates both measures:
 
 ![Illustration of gesticulation and posture](figures/wrist_movement_height_demo.png)
 
 I developed these measures in a working paper, which is linked at the end of this tutorial. If the introduction of the measures here was too brief, I invite you to take a closer look into that paper for a more detailed exposition.
 
-In the following sections, we will apply pose estimation to two short video sequences using python. We'll then load the resulting data into R and explore it. We'll visualize the data to get a feeling for it, and ultimately calculate the measures of gesticulation and posture.
+In the following sections, we will apply pose estimation to two short video sequences using Python. We'll then load the resulting data into R and explore it. We'll visualize the data to get a feeling for it, and ultimately calculate the measures of gesticulation and posture.
 
 ### Implementing Pose Estimation
 <!-- Add some text here  -->
 
 We start by applying Tensorflow's pose estimation model [MoveNet Thunder](https://www.tensorflow.org/hub/tutorials/movenet) to two short videos of two speeches in the German Bundestag. If you would like to replicate the analysis on your computer, you can find the videos of those speeches in the [GitHub repository](https://github.com/orittmann/ssdl_body_language.git) accompanying this tutorial. You can also implement this section online on [Google Colab](https://colab.research.google.com/github/orittmann/ssdl_body_language). 
 
-The two videos that we would like to analyze are located at `ssdl_body_language/videos/speech1_gabriela_heinrichs.mp4` and `ssdl_body_language/videos/speech2_klaus_ernst.mp4`. The repository also includes the file `ssdl_body_language/model/lite-model_movenet_singlepose_thunder_3.tflite`. This is the pre-trained pose estimation model that we will use to analyze the videos. You can find more details [here](https://www.tensorflow.org/hub/tutorials/movenet).
+The two videos that we would like to analyze are located at
+
+  + `ssdl_body_language/videos/speech1_gabriela_heinrichs.mp4`
+  + `ssdl_body_language/videos/speech2_klaus_ernst.mp4`. 
+  
+The repository also includes the the pre-trained pose estimation model that we will use to analyze the videos:
+
+  + `ssdl_body_language/model/lite-model_movenet_singlepose_thunder_3.tflite`. 
+  
+You can find more details on MoveNet [here](https://www.tensorflow.org/hub/tutorials/movenet).
 
 I've chosen two speeches that differ strongly regarding the speakers' nonverbal displays. **Speech 1** by Gabriela Heinrich can be characterized as a speech with low nonverbal effort, while **Speech 2** by Klaus Ernst is a speech with high nonverbal effort. Our goal is to see how we can quantify these contrastive delivery styles using pose estimation. You can see both speeches below:
 
@@ -111,7 +121,7 @@ I've chosen two speeches that differ strongly regarding the speakers' nonverbal 
 
 ![Speech 2: Klaus Ernst, high nonverbal effort](videos/gifs/speech2_klaus_ernst.gif)
 
-Before we implement the model, we need to load all necessary dependencies:
+Before we implement the model, we need to load all necessary dependencies in Python:
 
 ```{python load-dependencies, eval=FALSE, python.reticulate = FALSE}
 # import dependencies
@@ -135,7 +145,7 @@ interpreter = tf.lite.Interpreter(model_path='ssdl_body_language/model/lite-mode
 interpreter.allocate_tensors()
 ```
 
-Next, we set up the function `make_keypoint_detection`. This function processes an input video frame-by-frame and performs pose estimation detection using TensorFlow's MoveNet model, which we loaded in the previous step. In particular, the function resizes each frame of the video to the required size, prepares it for the model, runs inference to get key points, stores the key points, and finally returns all the key points detected from the video.
+Next, we set up the function `make_keypoint_detection()`. This function processes an input video frame-by-frame and performs pose estimation detection using TensorFlow's MoveNet model, which we loaded in the previous step. In particular, the function resizes each frame of the video to the required size, prepares it for the model, runs inference to get key points, stores the key points, and finally returns all the key points detected from the video.
 
 ```{python model-function, eval=FALSE, python.reticulate = FALSE}
 def make_keypoint_detection(video_path):
@@ -268,7 +278,7 @@ The dimensions of the first speech object are 274 x 1 x 1 x 17 x 3. The first di
 speech1_raw[1,,,,]
 ```
 
-The first two columns represent the y- and x-coordinates of the 17 body key points:
+The first two columns represent the y- and x-coordinates of the 17 body key points on a scale between 0 and 1:
 
   - 1 nose
   - 2 left eye
@@ -293,7 +303,7 @@ The third column tells us how confident the model was in its detection, with con
 ### Organizing pose estimation data as a time-series data set
 <!-- Add some text here  -->
 
-The current format of the data is not very convinient and it makes sense to bring it into a format easier to work with. The following function requires the keypoint data loaded in the previous step, a file name, and the length of the respective video. The function takes our keypoint data as input and puts it into a time-series data frame that we can work with more easily.
+The current format of the data is not very convenient and it makes sense to bring it into a format easier to work with. The following function requires the keypoint data loaded in the previous step, a file name, and the length of the respective video. The function takes our keypoint data as input and puts it into a time-series data frame that we can work with more easily.
 
 ```{r array-to-time-series, echo=TRUE, message=FALSE, include=TRUE}
 array_to_timeseries <- function(data_list, 
@@ -307,16 +317,21 @@ array_to_timeseries <- function(data_list,
                matrix(NA, ncol = 17, nrow = dim(data_list)[1]),
                matrix(NA, ncol = 17, nrow = dim(data_list)[1]))
   
-  keypoints_x_cols <- 4:20
-  keypoints_y_cols <- 21:37
+  # all x-coordinates will be stored in the columns 4-20
+  keypoints_x_cols <- 4:20 
+  # all y-coordinates will be stored in the columns 21-37
+  keypoints_y_cols <- 21:37 
+  # all confidence scores will be stored in the columns 38-54
   keypoints_confidence_cols <- 38:54
+  
+  # assign variable names
   names(ts_dat)[keypoints_x_cols] <- paste0("kp", 1:17, "_x")
   names(ts_dat)[keypoints_y_cols] <- paste0("kp", 1:17, "_y")
   names(ts_dat)[keypoints_confidence_cols] <- paste0("kp", 1:17, "_conf")
   
   # calculate timestamps
   framerate <- dim(data_list)[1] / video_length
-  ts_dat$timestamp <- ts_dat$frame /framerate
+  ts_dat$timestamp <- ts_dat$frame / framerate
   
   for (i in 1:dim(data_list)[1]) {
     # x-values
@@ -372,8 +387,8 @@ Key point data:
   - `kp2_y` = y-coordinate of key point 2 (left eye)
   - `kp3_y` = y-coordinate of key point 3 (right eye) 
   - ...
-  - `kp17_conf` = y-coordinate of key point 17 (right ankle)
-  - `kp1_conf` = confidence for key point 1 (nos)
+  - `kp17_y` = y-coordinate of key point 17 (right ankle)
+  - `kp1_conf` = confidence for key point 1 (nose)
   - `kp2_conf` = confidence for key point 2 (left eye)
   - `kp3_conf` = confidence for key point 3 (right eye)
   - ...
@@ -393,8 +408,8 @@ frame_filename <- paste0("frame",
                          str_pad(frame_number, 5, pad = "0"),
                          ".png")
 
-image <- load.image(paste0("videos/frames_speech2/",
-                           frame_filename))
+image <- imager::load.image(paste0("videos/frames_speech2/",
+                                   frame_filename))
 ```
 
 What is the size of this image?
@@ -433,15 +448,16 @@ Remember the list from above? `kp1` to `kp13` are upper body key points while `k
 ```{r keypoints-subset-upper-body, echo=TRUE, message=FALSE, include=TRUE}
 # we want to subset to the upper body
 upper_body_pattern <- paste0("kp", 1:13, "_", collapse = "|")
-keypoints <- keypoints[str_detect(names(keypoints), upper_body_pattern)]
+keypoints <- keypoints[stringr::str_detect(names(keypoints), 
+                                           upper_body_pattern)]
 ```
 
 
 To make plotting a bit easier, we will reorganize the remaining data. We want a matrix that stores the x-coordinates of all key points in one column, and the y-coordinates in another column:
 
 ```{r keypoint-subset-transpose, echo=TRUE, message=FALSE, include=TRUE}
-kp_x <- t(keypoints[, str_detect(names(keypoints), "_x")])
-kp_y <- t(keypoints[, str_detect(names(keypoints), "_y")])
+kp_x <- t(keypoints[, stringr::str_detect(names(keypoints), "_x")])
+kp_y <- t(keypoints[, stringr::str_detect(names(keypoints), "_y")])
 
 kp_frame <- data.frame(cbind(kp_x, kp_y))
 colnames(kp_frame) <- c("x", "y")
@@ -662,7 +678,9 @@ points(x = kp_frame$x_scaled,
 
 I hope visualizing individual frames gave you a feeling for the data. We now calculate two body language indicators from a time series of key point representations. That is, we will calculate a measure of gesticulation and a measure of posture both speech sequences. 
 
-### Calculating measure of gesticulation
+### Calculating measure of gesticulation and posture
+
+#### Gesticulation
 
 Let's recall how we would like to quantify the level of gesticulation shown by the speaker. I defined gesticulation as the dynamic use of gestures, specifically through hand movement. We will use the fact that the distances of hand locations between frames capture hand movement. The more a speaker moves their hands, the higher the distance of hand locations between two consecutive frames. We construct our **measure of gesticulation** as the **average between-frame distance of the speaker's left and right hand**.
 
@@ -723,7 +741,7 @@ plot(x = speech1_keypoints$frame,
      type = "n",
      las = 1,
      xlab = "Video Frame",
-     ylab = "",
+     ylab = "Movement",
      main = "Left Wrist Movement",
      ylim = c(0, 0.2),
      xlim = c(0, 450))
@@ -766,7 +784,7 @@ plot(x = speech1_keypoints$frame,
      type = "n",
      las = 1,
      xlab = "Video Frame",
-     ylab = "",
+     ylab = "Movement",
      main = "Right Wrist Movement",
      ylim = c(0, 0.2),
      xlim = c(0, 450))
@@ -862,7 +880,7 @@ text(x = c(gesticulations_speech1,
 
 In line with what we would hope and expect, the gesticulation indicator suggests that Klaus Ernst (Speech 2) showed higher levels of gesticulation than Gabriela Heinrich (Speech 1).
 
-### Calculating measure of posture
+#### Posture
 
 Next, we calculate the measure of posture. While the gesticulation measure quantifies hand movement irrespective of its form, posture quantifies the extent to which speakers adopt body size-increasing postures. We quantify this by calculating the average height of the wrist relative to the shoulder. Our measure of posture is the average height of the higher wrist across all frames in a speech sequence.
 
@@ -908,7 +926,7 @@ plot(x = speech1_keypoints$frame,
      type = "n",
      las = 1,
      xlab = "Video Frame",
-     ylab = "",
+     ylab = "Wrist Height (L)",
      main = "Left Wrist Height",
      ylim = c(-0.27, 0.11),
      xlim = c(0, 450))
@@ -951,7 +969,7 @@ plot(x = speech1_keypoints$frame,
      type = "n",
      las = 1,
      xlab = "Video Frame",
-     ylab = "",
+     ylab = "Wrist Height (R)",
      main = "Right Wrist Height",
      ylim = c(-0.27, 0.11),
      xlim = c(0, 450))
@@ -1040,17 +1058,14 @@ text(x = c(posture_speech1,
 
 Both values are negative, indicating that, on average, both speakers held their wrists below their shoulders. Again, the results confirm our intuition, showing that Klaus Ernst made more use of body-size-increasing postures than Gabriela Heinrich.
 
-### Wrapping up
+### Wrapping up and Further Readings<a name="furtherreadings"></a>
 
 In this workshop, we learned how to apply the pose estimation model `MoveNet` to videos of political speech, explored the resulting data, and calculated measures of gesticulation and posture based on it. 
 
-For a more detailed discussion on the application of pose estimation models for the analysis of politicians' body language during political speech, please refer to the following paper: 
-
-  - Rittmann, Oliver (2024). A Measurement Framework for Computationally Analyzing Politicians' Body Language. _OSF Preprint_, available at [doi.org/10.31219/osf.io/9wynp](https://doi.org/10.31219/osf.io/9wynp).
+In principal, the proposed method works for speeches in various parliaments and is not bound to the German Bundestag, as long as there is a camera that captures the speaker from a fixed position, preferably from the front. For a more detailed discussion on the application of pose estimation models for the analysis of politicians' body language during political speech, please refer to the following paper: 
 
 
 <!-- Add a list of further readings -->
-### Further readings <a name="furtherreadings"></a>
 
 * Rittmann, Oliver (2024). A Measurement Framework for Computationally Analyzing Politicians' Body Language. _OSF Preprint_, available at [doi.org/10.31219/osf.io/9wynp](https://doi.org/10.31219/osf.io/9wynp).
 

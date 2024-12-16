@@ -1,0 +1,6 @@
+
+- Date: Rmd Template says "to be adjusted by editorial team"
+- Is it okay if you fork the GitHub repo with the SSDL account and link it there? - yes
+- code chunk to set up the Python environment: Not sure how this would work from within RMarkdown
+- packages in R: There is a set-up chunk at the very beginning that does it
+- R-code for plots: It's all in the markdown files. If you want it in the tutorial, you can adjust the chunk option. There is also a drop-down-code option, but I don't know of this works with the SSDL homepage
